@@ -1,0 +1,273 @@
+<html>
+
+<head>
+
+<link rel="stylesheet" href="main.css" type="text/css" />
+<title>XCOM Tutorial</title>
+
+</head>
+
+<body>
+
+<div id="subheader">
+ <p>XCOM</p>
+</div>
+
+<div id="container">
+
+<div id="left-column">
+ <a href="index.html">Home</a>
+ <a href="installation.html">Install</a>
+ <a href="tutorial.html">Tutorial</a>
+ <a href="download.html">Download</a>
+</div>
+
+<div id="right-column">
+
+<h1>XCOM Tutorial</h1>
+
+<p>In this tutorial we develop a simple XCOM component and a test program
+that access the component. We assume that the installation
+steps are completed, XCOM header files are placed into 
+directory <code>~/include</code>,the <code>libxcom.so</code>
+is placed into directory <code>~/lib</code> and the
+XCOM's idl files are placed in directory <code>~/idl</code>.</p>
+
+<h2>XCOM IDL - XCOM Interface Definition Language</h2>
+
+<p>XCOM contains many similarities with other component systems especially
+Microsoft's COM and Mozilla XPCOM. All these systems are interface based
+binary component standards where there is a root interface that
+provides capability querying and lifetime management services through
+reference counting.</p>
+
+<p>At the very heart of the component based programming lies interfaces. A
+component encapsulates implementation that can be accessed using the
+provided interfaces by the component. In simple terms an interface
+is a named list of functions. In XCOM you specify the interfaces
+and the datatypes in a special declarative language which resembles
+most of the other IDL's.</p>
+
+<p>In the following code snipped a simple interface named
+<code>simple.IHello</code> is defined:</p>
+
+<pre class="csnip">
+import &quot;xcom/IUnknown.idl&quot;;
+
+namespace simple
+{
+    interface IHello (&quot;91c16a9e-b609-47cf-885a-644218dd4067&quot;) extends xcom::IUnknown
+    {
+        void sayTo(in string who);
+    }
+}
+</pre>
+
+<p>There are a few things noteworthy to explain. The first line
+is an <em>import</em> statement which is used to bring definitions from
+other IDL files. You must directly or indirectly import
+<code>xcom/IUnknown.idl</code> file in your IDL files.</p>
+
+<p>The second point is the <em>namespace</em> line. Namespaces are used
+to partition the namespace of datatypes to prevent name collisions. Namespaces
+can be nested arbitrarily deep.</p>
+
+<p>Then the interface definition comes. Following the <em>interface</em>
+keyword the textual name of the interface comes, here it is <code>IHello</code>
+then the numeric name follows. This numeric name is an 128-bit identifier
+that is globally unique, which is called a <em>GUID</em>. This number can be
+generated using the <code>uuidgen</code> utility. After that, the
+<em>extends</em> part comes. Every interface must inherit from another
+interface except the root interface <code>xcom.IUnknown</code>. This
+means that, at the end, every interface inherit from <code>xcom.IUnknown</code>
+directly or indirectly. More comes for this interface. Then the list
+of functions comes, specifying return type, name and the parameters. The
+parameters must specify an access mode, parameter type and a name. The access
+mode can be one of <code>in</code>, <code>out</code> or <code>inout</code>.</p>
+
+<h2>Generating Headers</h2>
+
+<p>Save the code listing given above to a file named <code>Simple.idl</code>.
+Now comes generation of the header files that will be used by the component
+implementation and the client.</p>
+
+<p>The <code>xcomidl</code> utility is used to generate C++ headers from
+IDL files. Its usage is given below:</p>
+
+<pre class="csnip">
+$ xcomidl -I include_path1 -I include_path2 ... idlFile1.idl idlFile2.idl ...
+</pre>
+
+<p>Now if you run <code>xcomidl</code> on the <code>Simple.idl</code>:</p>
+
+<pre class="csnip">
+$ xcomidl -I ~/idl Simple.idl
+</pre>
+
+<p>This generates two files <code>Simple.hpp</code> and
+<code>SimpleTie.hpp</code> respectively. The first file is common to
+both component implementors and component users. The second file is used
+only by the component implementor.</p>
+
+<h2>Component Implementation</h2>
+
+<p>The following listing gives a complete implementation for our
+component:</p>
+
+<pre class="csnip">
+#include &lt;xcom/ImplHelper.hpp&gt;
+#include &lt;xcom/ExcImpl.inc&gt;
+
+#include &lt;iostream&gt;
+#include &quot;SimpleTie.hpp&quot;
+
+namespace
+{
+    struct HelloImpl
+        : public xcom::Supports&lt;HelloImpl, simple::IHello&gt;,
+          public xcom::RefCounted&lt;HelloImpl&gt;
+    {
+        void sayTo(xcom::Char const* name)
+        {
+            std::cout &lt;&lt; &quot;hello &quot; &lt;&lt; name &lt;&lt; '\n';
+        }
+    };    
+
+    struct DLLAccess : public xcom::DLLAccessBase
+    {
+        DLLAccess()
+        {
+            classes.push_back(&quot;MyHelloImpl&quot;);
+            
+            xcom::TypeDesc&lt;simple::IHello&gt;::addSelf(types);
+            
+            addInterface(&quot;IHello&quot;);
+        }
+        
+        xcom::IUnknown dllCreateObject(xcom::Char const* cname)
+        {
+            if(strcmp(cname, &quot;MyHelloImpl&quot;) == 0)
+            {
+                return new HelloImpl;
+            }
+            
+            return 0;
+        }
+    };
+}
+
+XCOM_PROVIDE_DLL_ACCESS(DLLAccess)
+</pre>
+
+<p>The <code>ImplHelper.hpp</code> header provides support classes for
+implementing the <code>addRef</code>, <code>release</code> and
+<code>queryInterface</code> methods.</p>
+
+<p>Here the real component implementation is the <code>HelloImpl</code> class.
+The <code>Supports</code> base class implements the inherited
+<code>queryInterface</code> method and the <code>RefCounted</code> class
+provides implementations for the <code>addRef</code> and <code>release</code>
+methods. To implement an interface in a component all methods given in 
+the interface must be implemented. As the only method in the <code>IHello</code>
+interface is <code>sayTo</code>, only it's implementation is given.</p>
+
+<p>The remaining <code>DLLAccess</code> class and the macro invocation
+at the end provides the implementations of required functions that
+all XCOM component shared libraries must export. For the implementor,
+he must add the names of classes he wants to create to a list. Any
+number of classes can be specified as long as the
+<code>dllCreateObject</code> function creates instances when any of
+the registered names are given. The second line in the constructor
+adds metadata descriptions of the used interfaces in the component
+to an internal list. The third line registers the name of the given
+interface to an internal list. The last two functions are used to
+provide metadata outside world.</p>
+
+<p>You can compile the component to a shared library using the following
+commands:</p>
+
+<pre class="csnip">
+$ gcc -shared -Wl,-Bsymbolic -Wall -O0 -g -o comp.so -I ~/include Component.cpp -L ~/lib -lxcom
+</pre>
+
+<p>You may have to adjust the -I and -L switches in case the location
+of XCOM headers and libraries are different.</p>
+
+<h2>Using Components</h2>
+
+<p>In this part we'll develop a program that uses our simple component. Before
+that a little explanation about how XCOM locates components given their
+name. At program startup XCOM searches for a whose name is <code>.config</code>
+suffix appended to executable's name. This file must contain a directory
+name per line. XCOM adds these directories to an internal search list.
+When a request is made to load a component given its name, XCOM searches
+these directories for a file with the same name as component and a
+suffix depending on the platform. Given the file is found, it is loaded and
+a handle to it returned in the form of <code>xcom.ILibrary</code> interface.
+</p>
+
+<p>Here is the sample application that uses our component:</p>
+
+<pre class="csnip">
+#include &quot;Simple.hpp&quot;
+#include &lt;xcom/Loader.hpp&gt;
+
+int main()
+{
+    xcom::loadAsBuiltin(&quot;comp&quot;);
+    
+    simple::IHello hello(xcom::createObjectAs&lt;simple::IHello&gt;(&quot;MyHelloImpl&quot;));
+    hello.sayTo(&quot;ali&quot;);
+    hello.sayTo(&quot;veli&quot;);
+}
+</pre>
+
+<p>The first include header, is the generated one which contains
+the class generated for <code>simple.IHello</code> interface.
+The second header is a standard XCOM header which provides component loading
+functions.</p>
+
+<p>The first line in main loads the component named <em>comp</em> and
+make the classes in it available for instantiating. The
+<code>createObjectAs</code> template function takes an interface
+as template parameter and a string as first argument, which tries
+to instantiate given the class name by searching the loaded libraries.
+If it founds a match, creates an instance and casts to the given
+interface using <code>IUnknown.queryInterface</code> method behind the
+scenes. After we have an interface to a component at hand we can easily
+call the functions through.</p>
+
+<p>You can compile the client program using the following command:</p>
+
+<pre class="csnip">
+$ gcc -o client -I ~/xcom/include Main.cpp -L ~/lib -lxcom
+</pre>
+
+<p>When you run the program directly you should get an <em>Aborted</em>
+message even you have compiled the component before as XCOM does not
+know where it can find the library. You can show where is the component
+by creating a file named <code>client.config</code> in the same
+directory as the <code>client</code> executable and putting the directory
+in which our component resides. After that step you can run the program
+and see the following messages:</p>
+
+<pre class="csnip">
+hello ali
+hello veli
+</pre>
+
+<h2>Conclusion</h2>
+
+<p>This tutorial just scratched surface of XCOM by creating a very simple
+component and a client. The idl compiler of the XCOM can be examined
+for a more complex program as it is also component based.</p>
+
+</div>
+
+<div id="footer">
+ <p><div style="text-align: center">&copy; 2006 Emir Uner</div></p>
+</div>
+
+</body>
+
+</html>

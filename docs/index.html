@@ -1,0 +1,107 @@
+<html>
+
+<head>
+
+<link rel="stylesheet" href="main.css" type="text/css" />
+<title>XCOM</title>
+
+</head>
+
+<body>
+
+<div id="subheader">
+ <p>XCOM</p>
+</div>
+
+<div id="container">
+
+<div id="left-column">
+ <a href="index.html">Home</a>
+ <a href="installation.html">Install</a>
+ <a href="tutorial.html">Tutorial</a>
+ <a href="download.html">Download</a>
+</div>
+
+<div id="right-column">
+
+<h1>Overview</h1>
+
+<p>XCOM is a system designed to support component based programming in Linux.
+Although the system primarily targets Linux other POSIX supporting operating
+systems and Win32 class operating systems are planned to be supported.</p>
+
+<p>The following design goals are followed in making the current system:</p>
+
+<ul>
+ <li>Binary interface standard</li>
+ <li>Simplicity and ease of use</li>
+ <li>Good C++ support</li>
+ <li>Portability</li>
+</ul>
+
+<h2>Features</h2>
+
+<p>The current version of XCOM have the following features:</p>
+
+<ul>
+ <li>Specialized IDL compiler generating C++ code.</li>
+ <li>In-process components.</li>
+ <li>Embedded metadata.</li>
+ <li>Most of the common numeric data types.</li>
+ <li>Narrow and wide string types.</li>
+ <li><code>array</code>, <code>sequence</code>, and <code>struct</code>
+ types.</li>
+ <li>Error reporting via exceptions.</li>
+</ul>
+
+<p>The IDL compiler generates C++ code which conforms to the binary standard
+of XCOM. When the generated code is compiled its binary layout conforms
+to the XCOMs binary format. Most notably, other component systems
+uses virtual functions to implement this kind of functionality, but
+in XCOM a mix of templates and inheritance is used to provide a
+similar mechanism without using virtual functions because the mechanisms
+used for implementing virtual function mechanism may change
+from compiler to compiler. Also the binary format rules of the
+XCOM is designed to be not overly C++ oriented and not prohibit
+implementing remoting in the future.</p>
+
+<p>The generated C++ code permits the use of the system without delving
+to the binary details, such as reference counting and memory management.
+In most of the scenarios all of these can be handled behind the scenes.</p>
+
+<p>Error reporting via exceptions are also supported natively
+provided only the IDL defined exception objects are allowed to propagate
+through interface methods. Inheritance between exception types are
+also supported in order to support complex usage scenarios.</p>
+
+<h2>Future</h2>
+
+<p>The following are possible enhancements that may be implemented in
+future versions:</p>
+
+<ul>
+ <li>Support for different programming languages.</li>
+ <li>Remoting support.</li>
+ <li>Interception support.</li>
+ <li>Web services.</li>
+</ul>
+
+<h2>Authors</h2>
+
+<p>My name is <b><a href="mailto:emiruner@hotmail.com">Emir Uner</a></b>.
+The project started its life as my Master's Thesis
+project. Over it a lot of features added and enhancements made.</p>
+
+<p><b>David K. Turner</b> has helped with the platform independence code,
+written component implementation helper templates and macros, and nearly all
+of the present documentation.</p>
+
+</div>
+
+<div id="footer">
+ <p><div style="text-align: center">&copy; 2006 Emir Uner</div></p>
+</div>
+
+</body>
+
+</html>

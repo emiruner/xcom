@@ -1,0 +1,259 @@
+/**
+ * File    : MDTypes.idl
+ * Author  : Emir Uner
+ * Summary : XCOM metadata interfaces.
+ */
+
+/**
+ * This file is part of XCOM.
+ *
+ * Copyright (C) 2003 Emir Uner
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+import "xcom/IUnknown.idl";
+
+namespace xcom
+{
+    namespace metadata
+    {   
+        enum TypeKind
+        {
+            Void,          // v = 118
+            Bool,          // b = 98
+            Octet,         // o = 111
+            Short,         // s = 115
+            Int,           // i = 105
+            Long,          // l = 108
+            Float,         // f = 102
+            Double,        // d = 100
+            Char,          // c = 99
+            WChar,         // w = 119
+            String,        // S = 83
+            WString,       // W = 87
+            Enum,          // E = 69
+            Array,         // A = 65
+            Sequence,      // Q = 81
+            Struct,        // T = 84
+            Interface,     // I = 73
+            Exception,     // X = 88
+            Delegate,      // D = 68
+            Any             // N = 78
+        }
+
+        /**
+         * Base interface all metadata interfaces.
+         */
+        interface IType ("d12ecf1b-0660-4e63-8a74-db25bb91a6e4") extends IUnknown
+        {
+            /**
+             * Get kind of this type.
+             */
+            TypeKind getKind();
+        }
+
+        /**
+         * Base interface for user defined type metadata.
+         */
+        interface IDeclared ("f49d2f51-776c-45dc-8dde-0e00704dd93a") extends IType
+        {
+            /**
+             * Get name of this type.
+             */
+            string getName();
+        }
+
+        /**
+         * Sequence metadata.
+         */
+        interface ISequence ("ba2d8b9d-8f10-460a-b536-ead7f85e8f8c") extends IDeclared
+        {
+            /**
+             * Get element type.
+             */
+            IType getElementType();
+        }
+        
+        /**
+         * Array metadata.
+         */
+        interface IArray ("df640f45-d920-46a3-a018-dce321b50206") extends IDeclared
+        {
+            /**
+             * Get element type.
+             */
+            IType getElementType();
+            
+            /**
+             * Get capacity.
+             */
+            int getSize();
+        }
+
+        /**
+         * Enum metadata.
+         */
+        interface IEnum ("5e07b65e-e12d-4a9e-af6a-147da21988be") extends IDeclared
+        {
+            /**
+             * Get element count.
+             */
+            int getElementCount();
+            
+            /**
+             * Get element at the specified position.
+             *
+             * @pre 0 <= idx < getElementCount()
+             */
+            string getElement(in int idx);
+        }
+
+        /**
+         * Struct metadata.
+         */
+        interface IStruct ("6c4b0b62-c001-4b38-bcc1-170cea251b1f") extends IDeclared
+        {
+            /**
+             * Get member count.
+             */
+            int getMemberCount();
+            
+            /**
+             * Get type of the specified member.
+             */
+            IType getMemberType(in int idx);
+            
+            /**
+             * Get name of the specified member.
+             */
+            string getMemberName(in int idx);
+
+            /**
+             * Get offset of the member.
+             */
+            int getMemberOffset(in int idx);
+
+            /**
+             * Get complete size of the struct.
+             */
+            int getSize();
+        }
+
+        /**
+         * Exception metadata.
+         */
+        interface IException ("22c284b9-b3c0-4f12-9aa3-89bab180e2b3") extends IDeclared
+        {
+            /**
+             * Get base exception.
+             */
+            IException getBase();
+
+            /**
+             * Get member count.
+             */
+            int getMemberCount();
+            
+            /**
+             * Get type of the specified member.
+             */
+            IType getMemberType(in int idx);
+            
+            /**
+             * Get name of the specified member.
+             */
+            string getMemberName(in int idx);
+
+            /**
+             * Get offset of the member.
+             */
+            int getMemberOffset(in int idx);
+
+            /**
+             * Get complete size of the exception. Including the base.
+             */
+            int getSize();            
+        }
+
+        enum PassMode
+        {
+            In,
+            Out,
+            InOut,
+            Return
+        }
+        
+        struct ParamInfo
+        {
+            PassMode mode;
+            IType type;
+            string name;
+        }
+
+        /**
+         * sequence of ParamInfo's
+         */
+        sequence<ParamInfo> ParamInfoSeq;
+
+        /**
+         * Metadata for interface.
+         */
+        interface IInterface ("f8c5d320-5e13-49f7-b345-af641295c815") extends IDeclared
+        {
+            /**
+             * Get id for this interface.
+             */
+            GUID getId();
+
+            /**
+             * Get base interface of this interface.
+             */
+            IInterface getBase();
+            
+            /**
+             * Get number of methods.
+             */
+            int getMethodCount();
+            
+            /**
+             * Get name of the specified method.
+             */
+            string getMethodName(in int idx);
+
+            /**
+             * Get parameter sequence of the specified method.
+             * The zero'th element of the sequence denotes return type.
+             */
+            ParamInfoSeq getParameters(in int idx);
+
+            /**
+             * Releases the embedded interface pointers in the object that this
+             * interface belongs. Because cycles can occur in metadata objects,
+             * this inteface is selected as the link which destroy
+             * the cycle.
+             */
+            void destroy();
+        }
+
+        interface IDelegate ("a7ceb010-3d84-4f47-89cc-d08b9d27f882") extends IDeclared
+        {
+            /**
+             * Get the parameter sequence this delegate takes.
+             */
+            ParamInfoSeq getParameters();
+        }
+    }
+}

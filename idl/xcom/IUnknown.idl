@@ -1,0 +1,87 @@
+/**
+ * File    : IUnknown.idl
+ * Author  : Emir Uner
+ * Summary : Base XCOM type definitions include IUnknown.
+ */
+
+/**
+ * This file is part of XCOM.
+ *
+ * Copyright (C) 2003 Emir Uner
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+namespace xcom
+{
+    array<octet, 8> octet8;
+
+    /**
+     * 128-bit globally unique identifier type.
+     */
+    struct GUID
+    {
+        int data1;
+        short data2;
+        short data3;
+        octet8 data4;
+    }
+
+    interface IUnknown ("bf6bde51-c296-4d77-ba36-61d7775ae0a2")
+    {
+        /**
+         * If the components supports the interface specified with the
+         * iid argument, then return that interface, otherwise return
+         * a null interface.
+         */
+        IUnknown queryInterface(in GUID iid);
+
+        /**
+         * Get the iid of the interface from which this method called from.
+         */
+        GUID getInterfaceId();
+
+        /**
+         * Increment reference count for this interface.
+         */
+        int addRef();
+
+        /**
+         * Decrement reference count for this interface.
+         */
+        int release();
+    }
+    
+    /**
+     * Version.
+     */
+    struct Version
+    {
+        short major;
+        short minor;
+        short build;
+        short revision;
+    }
+
+    /**
+     * Sequence of IUnknown's.
+     */
+    sequence<IUnknown> IUnknownSeq;
+    
+    /**
+     * Sequence of string's.
+     */
+    sequence<string> StringSeq;
+}

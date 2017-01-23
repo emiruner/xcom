@@ -1,0 +1,116 @@
+<html>
+
+<head>
+
+<link rel="stylesheet" href="main.css" type="text/css" />
+<title>XCOM Installation</title>
+
+</head>
+
+<body>
+
+<div id="subheader">
+ <p>XCOM</p>
+</div>
+
+<div id="container">
+
+<div id="left-column">
+ <a href="index.html">Home</a>
+ <a href="installation.html">Install</a>
+ <a href="tutorial.html">Tutorial</a>
+ <a href="download.html">Download</a>
+</div>
+
+<div id="right-column">
+
+<h1>XCOM Installation</h1>
+
+<p>This document explains how to install XCOM on a Linux machine for
+development purposes. Assumes that you have the basic linux command line
+usage.</p>
+
+<h2>Requirements</h2>
+
+<p>XCOM currently tested on GCC 4.1.1 compilers. But versions above that and
+some below should work either. For building CMake must be already installed.</p>
+
+<h2>Building XCOM</h2>
+
+<p>You should have two source packages names similar to
+<code>xcom-yyyymmdd.tgz</code> and <code>xcomidl-yyyymmdd.tgz</code>.
+Extracting them creates two directories <code>xcom</code> and <code>xcomidl</code>
+respectively. We refer to the directory into which you extracted the packages
+as <code>home</code>. Create two directories with names whatever you choose,
+but we refer them as <code>xcomBuild</code> and <code>xcomidlBuild</code>
+respectively.</p>
+
+<p>Go to the directory <code>${xcomBuild}</code> and type:</p>
+<pre class="csnip">
+$ cmake ${home}/xcom
+$ make
+</pre>
+
+<p>This will result in <code>libxcom.so</code> generated in some directory below.
+You can now install the headers and the produced library to a convenient place
+using the command where <code>installdir</code> specifies where the files are copied:
+
+<pre class="csnip">
+$ make install DESTDIR=installdir
+</pre>
+
+
+<p>This command places the header files to <code>installdir/include</code>
+and library files to <code>installdir/lib</code> which we 
+refer as <code>${xcom.includes}</code> and <code>${xcom.libs}</code>
+respectively. The <code>${xcom.libs}</code> directory must be 
+placed to <code>LD_LIBRARY_PATH</code> environment variable.</p>
+
+<p>Go to the directory <code>${xcomidlBuild}</code> and type:</p>
+
+<pre class="csnip">
+$ cmake -DXCOM_INCLUDE_DIR=${xcom.includes} -DXCOM_LIBRARY_DIR=${xcom.libs} ${home}/xcomidl
+$ make
+</pre>
+
+<p>This will result in <code>xcomidl</code> and required shared libraries
+(<code>xcom_{parser, cppgen}.so</code>) generated in some directory below.</p>
+The executable and libraries can be installed using the command:</p>
+
+<pre class="csnip">
+$ make install DESTDIR=installdir
+</pre>
+
+<p>This command places the executable to <code>installdir/bin</code>
+and library files to <code>installdir/lib</code> which we 
+refer as <code>${xcomidl.bin}</code> and <code>${xcomidl.libs}</code>
+respectively.</p>
+
+<p>The last step is to create a file named <code>xcomidl.config</code> in the
+directory same as the <code>xcomidl</code> executable with a single
+line containing <code>${xcomidl.libs}</code>'s value.
+When you type <code>xcomidl</code> alone, no error messages must be 
+seen.</p>
+
+<p>After this point the system can be used to develop programs provided
+that <code>xcomidl</code> is in path, <code>libxcom.so</code> is in
+a directory that can be reached by dynamic linker and the 
+<code>xcom_{parser, cppgen}.so</code> are in a directory listed in
+the <code>xcomidl.config</code> file.</p>
+
+<h2>Installation</h2>
+
+<p>If the header files and libraries are installed using <code>/usr</code>
+as DESTDIR then there is no need to set <code>LD_LIBRARY_PATH</code> and
+specify <code>XCOM_INCLUDE_DIR</code> and <code>XCOM_LIBRARY_DIR</code>
+when compiling <code>xcomidl</code>.</p>
+
+</div>
+
+<div id="footer">
+ <p><div style="text-align: center">&copy; 2006 Emir Uner</div></p>
+</div>
+
+</body>
+
+</html>
