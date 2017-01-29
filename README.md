@@ -3,6 +3,15 @@ A component system for C++ highly inspired by COM.
 
 Uses C++ templates.
 
-It contains an IDL compiler/code generator, support library.
+See xcomidl project for IDL compiler.
 
-Currently build system was not working.
+To build:
+
+```
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=/installprefix ..
+make install
+```
+
+This will compile and install to installprefix directory.
