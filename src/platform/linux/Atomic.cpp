@@ -26,13 +26,11 @@
 
 #include <xcom/Integral.hpp>
 
-#include <asm/atomic.h>
-
 extern "C"
 xcom::Int xcomInterlockedIncrement(xcom::Int* num)
 {
     xcom::Int newVal = *num + 1;
-    atomic_inc(reinterpret_cast<atomic_t*>(num));
+    __atomic_fetch_add(num, 1, __ATOMIC_SEQ_CST);
     return newVal;
 }
 
@@ -40,6 +38,6 @@ extern "C"
 xcom::Int xcomInterlockedDecrement(xcom::Int* num)
 {
     xcom::Int newVal = *num - 1;
-    atomic_dec(reinterpret_cast<atomic_t*>(num));
+    __atomic_fetch_add(num, -1, __ATOMIC_SEQ_CST);
     return newVal;
 }
